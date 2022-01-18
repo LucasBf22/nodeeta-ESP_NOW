@@ -6,7 +6,7 @@ uint8_t broadcastAddress[] = {0x84,0xCC,0xA8,0x7A,0xC4,0x70};
 
 typedef struct struct_message {
   int id; // ID unico para cada esp.
-  int temp;
+  int x;
 } struct_message;
 
 struct_message meuDado;
@@ -41,7 +41,8 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  meuDado.id = 1;
+  meuDado.id = random(1,2);
+  meuDado.x = random(1,50);
 
   long now = millis();
   if (now-lastMsg>5000)
