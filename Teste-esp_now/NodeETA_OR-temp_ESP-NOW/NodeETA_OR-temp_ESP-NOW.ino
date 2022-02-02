@@ -11,6 +11,7 @@ uint8_t broadcastAddress[] = {0x84,0xCC,0xA8,0x7A,0xC4,0x70};
 typedef struct struct_message {
   int id; // ID unico para cada esp.
   float Temp;
+  bool estatus;
 } struct_message;
 
 struct_message meuDado;
