@@ -12,6 +12,7 @@ uint8_t broadcastAddress[] = {0x84,0xCC,0xA8,0x7A,0xC4,0x70};
 typedef struct struct_message {
   int id; // ID unico para cada esp.
   double irms;
+  bool estatus;
 } struct_message;
 
 struct_message meuDado;
@@ -53,6 +54,7 @@ void loop() {
   if (now-lastMsg>5000)
   {
       meuDado.irms = emon.calcIrms(1480);
+      meuDado.status = true;
       Serial.println(meuDado.irms);
       esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &meuDado, sizeof(meuDado));
       result == ESP_OK ? Serial.println("Sent with success"): Serial.println("Error sending the data");
