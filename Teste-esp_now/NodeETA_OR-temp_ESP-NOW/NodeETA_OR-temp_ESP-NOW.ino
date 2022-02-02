@@ -54,6 +54,7 @@ void loop() {
   if (now-lastMsg>5000)
   {
       meuDado.Temp = ds.getTempC();
+      meuDado.estatus = true;
       esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &meuDado, sizeof(meuDado));
       result == ESP_OK ? Serial.println("Sent with success"): Serial.println("Error sending the data");
       lastMsg = now;   
