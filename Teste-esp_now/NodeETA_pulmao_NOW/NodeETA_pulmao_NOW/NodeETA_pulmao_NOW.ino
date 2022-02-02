@@ -17,6 +17,7 @@ typedef struct struct_message {
   int id; // ID unico para cada esp.
   float ph;
   float sp1;
+  bool estatus;
 } struct_message;
 
 union {
@@ -202,6 +203,7 @@ void loop() {
 
   if (now-lastMsg2>5000)
   {
+      meuDado.estatus = true;
       esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &meuDado, sizeof(meuDado));
       result == ESP_OK ? Serial.println("Sent with success"): Serial.println("Error sending the data");
       lastMsg2 = now;   
