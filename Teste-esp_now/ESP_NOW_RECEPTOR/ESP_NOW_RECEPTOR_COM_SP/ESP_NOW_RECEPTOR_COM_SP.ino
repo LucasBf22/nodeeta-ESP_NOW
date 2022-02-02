@@ -16,23 +16,27 @@ float sp_recv = 0;
 typedef struct struct_message_temp {
   int id; //id 1
   float temp;
+  bool estatus;
 }struct_message_temp;
 
 typedef struct struct_message_corrente {
   int id; //id 2
   double irms;
+  bool estatus;
 }struct_message_corrente;
 
 typedef struct struct_message_ph {
   int id; //id 3
   float ph;
   float sp1;
+  bool estatus;
 }struct_message_ph;
 
 typedef struct struct_message_or {
   int id; //id 4
   float irms_alta;
   int estado;
+  bool estatus;
 }struct_message_or;
 
 //variavel do dado recebido
@@ -44,11 +48,6 @@ struct_message_or meuDado_or;
 
 /*--------------------funcao do callback----------------------*/
 void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) {// recebe endereco MAC, dado recebido, tamanho
-  char macStr[18];                                                                // vetor de char que vai receber o MAC
-  //Serial.print("Packet received from: ");
-  snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",              // Ponteiro do vetor de char, tamanho do vetor, formato desse vetor
-           mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]); //utilizando o padrao recebido pelo mac_addr
-  //Serial.println(macStr);                                                         //Printa o MAC do esp que do qual esta recebendo o dado
   memcpy(&id, incomingData, sizeof(id));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
   switch (id){
     case 1:
@@ -83,9 +82,9 @@ void setup() {
     Serial.println("Error initializing ESP-NOW");
     return;
   }
-  
-  esp_now_register_send_cb(OnDataSent);
-  
+
+   esp_now_register_send_cb(OnDataSent);
+   
   esp_now_peer_info_t peerInfo;
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;  
@@ -99,7 +98,7 @@ void setup() {
   
   //Chama a funcao callback de acordo com o dado recebido
   esp_now_register_recv_cb(OnDataRecv);
-  
+ 
 }
 
 void loop() {
@@ -113,16 +112,21 @@ void loop() {
       msg["sp1"] = meuDado_ph.sp1;
       msg["corrente_alta"] = meuDado_or.irms_alta;
       msg["estado"] = meuDado_or.estado;
+      msg["estatus_esp-temp"] = meuDado_temp.estatus;
+      msg["estatus_esp-deio"] = meuDado_corrente.estatus;
+      msg["estatus_esp-ph"] = meuDado_ph.estatus;
+      msg["estatus_esp-or"] = meuDado_or.estatus;
       
       serializeJson(msg, Serial);
       
-      meuDado_temp.temp = 0;
-      meuDado_corrente.irms = 0;
-      meuDado_ph.ph = 0;
-      meuDado_ph.sp1 = 0; 
+      meuDado_temp.estatus = false;
+      meuDado_corrente.estatus = false;
+      meuDado_ph.estatus = false;
+      meuDado_ph.estatus = false; 
       
       lastMsg = now;   
   }
+  
   if (sp_recv != 0)
   {
       esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &sp_recv, sizeof(sp_recv));
