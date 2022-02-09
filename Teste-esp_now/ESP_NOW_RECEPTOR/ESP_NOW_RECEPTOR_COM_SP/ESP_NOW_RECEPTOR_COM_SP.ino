@@ -6,10 +6,10 @@ Codigo para esp receptor por arquitetura ESP_NOW
 #include <WiFi.h>
 #include <esp_now.h>
 #include <ArduinoJson.h>
+#define SAMPLE_TIME 10000 //milisegundos
+uint8_t esp_ph_address[] = {0x30,0x83,0x98,0x00,0xA2,0xDC};
 
-uint8_t broadcastAddress[] = {0xE0, 0xE2, 0xE6, 0xD0, 0xF9, 0x08};
-
-long lastMsg = 0;
+unsigned long lastMsg = 0;
 int id = 0;
 float sp_recv = 0;
 //estrutura do pacote de dados recebidos
@@ -40,10 +40,10 @@ typedef struct struct_message_or {
 }struct_message_or;
 
 //variavel do dado recebido
-struct_message_temp meuDado_temp;
-struct_message_corrente meuDado_corrente;
-struct_message_ph meuDado_ph;
-struct_message_or meuDado_or;
+struct_message_temp my_data_temp;
+struct_message_corrente my_data_corrente;
+struct_message_ph my_data_ph;
+struct_message_or my_data_or;
 
 
 /*--------------------funcao do callback----------------------*/
@@ -51,16 +51,16 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *incomingData, int len) 
   memcpy(&id, incomingData, sizeof(id));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
   switch (id){
     case 1:
-      memcpy(&meuDado_temp, incomingData, sizeof(meuDado_temp));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
+      memcpy(&my_data_temp, incomingData, sizeof(my_data_temp));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
       break;
     case 2:
-      memcpy(&meuDado_corrente, incomingData, sizeof(meuDado_corrente));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
+      memcpy(&my_data_corrente, incomingData, sizeof(my_data_corrente));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
       break;
     case 3:
-      memcpy(&meuDado_ph, incomingData, sizeof(meuDado_ph));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
+      memcpy(&my_data_ph, incomingData, sizeof(my_data_ph));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
       break;
     case 4:
-      memcpy(&meuDado_or, incomingData, sizeof(meuDado_or));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
+      memcpy(&my_data_or, incomingData, sizeof(my_data_or));                                //Copia o numero de bytes do local apontado para a memoria, salvando o pacote de dados na memoria
       break;
     default:
       Serial.printf("Nenhum ID cadastrado foi encontrado...");
@@ -86,7 +86,7 @@ void setup() {
    esp_now_register_send_cb(OnDataSent);
    
   esp_now_peer_info_t peerInfo;
-  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+  memcpy(peerInfo.peer_addr, esp_ph_address, 6);
   peerInfo.channel = 0;  
   peerInfo.encrypt = false;
   
@@ -102,35 +102,37 @@ void setup() {
 }
 
 void loop() {
+  if (Serial.available() > 0) {
+    sp_recv = Serial.parseFloat();
+  }
   StaticJsonDocument<1024> msg;
-  long now = millis();
-  if (now-lastMsg>10000)
+  unsigned long now = millis();
+  if (now-lastMsg>SAMPLE_TIME)
   {
-      msg["temp"] = meuDado_temp.temp;
-      msg["corrente"] = meuDado_corrente.irms;
-      msg["ph"] = meuDado_ph.ph;
-      msg["sp1"] = meuDado_ph.sp1;
-      msg["corrente_alta"] = meuDado_or.irms_alta;
-      msg["estado"] = meuDado_or.estado;
-      msg["estatus_esp-temp"] = meuDado_temp.estatus;
-      msg["estatus_esp-deio"] = meuDado_corrente.estatus;
-      msg["estatus_esp-ph"] = meuDado_ph.estatus;
-      msg["estatus_esp-or"] = meuDado_or.estatus;
+      msg["temp"] = my_data_temp.temp;
+      msg["corrente"] = my_data_corrente.irms;
+      msg["ph"] = my_data_ph.ph;
+      msg["sp1"] = my_data_ph.sp1;
+      msg["corrente_alta"] = my_data_or.irms_alta;
+      msg["estado"] = my_data_or.estado;
+      msg["estatus_esp-temp"] = my_data_temp.estatus;
+      msg["estatus_esp-deio"] = my_data_corrente.estatus;
+      msg["estatus_esp-ph"] = my_data_ph.estatus;
+      msg["estatus_esp-or"] = my_data_or.estatus;
       
       serializeJson(msg, Serial);
       
-      meuDado_temp.estatus = false;
-      meuDado_corrente.estatus = false;
-      meuDado_ph.estatus = false;
-      meuDado_ph.estatus = false; 
+      my_data_temp.estatus = false;
+      my_data_corrente.estatus = false;
+      my_data_ph.estatus = false;
+      my_data_ph.estatus = false; 
       
       lastMsg = now;   
   }
   
   if (sp_recv != 0)
   {
-      esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &sp_recv, sizeof(sp_recv));
-      result == ESP_OK ? Serial.println("Sent with success"): Serial.println("Error sending the data");
+      esp_err_t result = esp_now_send(esp_ph_address, (uint8_t *) &sp_recv, sizeof(sp_recv));
       sp_recv = 0;
   }
 }
