@@ -7,7 +7,7 @@ Codigo para esp receptor por arquitetura ESP_NOW
 #include <esp_now.h>
 #include <ArduinoJson.h>
 
-uint8_t broadcastAddress[] = {0xE0, 0xE2, 0xE6, 0xD0, 0xF9, 0x08};
+uint8_t broadcastAddress[] = {0x%02, 0x%02, 0x%02, 0x%02, 0x%02, 0x%02};
 
 long lastMsg = 0;
 int id = 0;
