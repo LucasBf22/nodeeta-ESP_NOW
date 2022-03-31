@@ -7,7 +7,7 @@ EnergyMonitor emon;  // cria o objeto p/ interagir com o sensor
 
 long lastMsg = 0;
 
-uint8_t broadcastAddress[] = {0x84,0xCC,0xA8,0x7A,0xC4,0x70};
+uint8_t broadcastAddress[] = {0x%02,0x%02,0x%02,0x%02,0x%02,0x%02};
 
 typedef struct struct_message {
   int id; // ID unico para cada esp.
