@@ -10,7 +10,7 @@ int change_poll = 0;
 byte b_sp[4];
 float sp1_recv;
 
-uint8_t broadcastAddress[] = {0x84,0xCC,0xA8,0x7A,0xC4,0x70};
+uint8_t broadcastAddress[] = {0x%02,0x%02,0x%02,0x%02,0x%02,0x%02};
 byte msg2[10];
 int i=0;
 typedef struct struct_message {
